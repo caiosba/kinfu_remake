@@ -34,6 +34,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/share/cmake-3.0/Modules/Compiler/GNU.cmake"
   "/usr/share/cmake-3.0/Modules/FindCUDA.cmake"
   "/usr/share/cmake-3.0/Modules/FindCUDA/run_nvcc.cmake"
+  "/usr/share/cmake-3.0/Modules/FindOpenMP.cmake"
   "/usr/share/cmake-3.0/Modules/FindPackageHandleStandardArgs.cmake"
   "/usr/share/cmake-3.0/Modules/FindPackageMessage.cmake"
   "/usr/share/cmake-3.0/Modules/FindPkgConfig.cmake"

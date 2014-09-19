@@ -1,5 +1,5 @@
 #include "precomp.hpp"
-
+#include "omp.h"
 
 using namespace kfusion;
 using namespace std;
@@ -174,41 +174,50 @@ bool kfusion::cuda::ProjectiveICP::estimateTransform(Affine3f& affine, const Int
     device::ComputeIcpHelper helper(dist_thres_, angle_thres_);
     affine = Affine3f::Identity();
 
+    bool ret = true;
+
     for(int level_index = LEVELS - 1; level_index >= 0; --level_index)
     {
-        const device::Normals& n = (const device::Normals& )nprev[level_index];
-        const device::Points& v = (const device::Points& )vprev[level_index];
+        if (ret) {
+          const device::Normals& n = (const device::Normals& )nprev[level_index];
+          const device::Points& v = (const device::Points& )vprev[level_index];
 
-        helper.rows = (float)n.rows();
-        helper.cols = (float)n.cols();
-        helper.setLevelIntr(level_index, intr.fx, intr.fy, intr.cx, intr.cy);
-        helper.vcurr = vcurr[level_index];
-        helper.ncurr = ncurr[level_index];
+          helper.rows = (float)n.rows();
+          helper.cols = (float)n.cols();
+          helper.setLevelIntr(level_index, intr.fx, intr.fy, intr.cx, intr.cy);
+          helper.vcurr = vcurr[level_index];
+          helper.ncurr = ncurr[level_index];
 
-        for(int iter = 0; iter < iters_[level_index]; ++iter)
-        {
-            helper.aff = device_cast<device::Aff3f>(affine);
-            helper(v, n, buffer_, sh, sh);
+          #pragma omp parallel for
+          for(int iter = 0; iter < iters_[level_index]; ++iter)
+          {
+              if (ret) {
+                helper.aff = device_cast<device::Aff3f>(affine);
+                helper(v, n, buffer_, sh, sh);
 
-            StreamHelper::Vec6f b;
-            StreamHelper::Mat6f A = sh.get(b);
+                StreamHelper::Vec6f b;
+                StreamHelper::Mat6f A = sh.get(b);
 
-            //checking nullspace
-            double det = cv::determinant(A);
+                //checking nullspace
+                double det = cv::determinant(A);
 
-            if (fabs (det) < 1e-15 || cv::viz::isNan (det))
-            {
-                if (cv::viz::isNan (det)) cout << "qnan" << endl;
-                return false;
-            }
+                if (fabs (det) < 1e-15 || cv::viz::isNan (det))
+                {
+                    if (cv::viz::isNan (det)) cout << "qnan" << endl;
+                    ret = false;
+                }
+                else
+                {
+                  StreamHelper::Vec6f r;
+                  cv::solve(A, b, r, cv::DECOMP_SVD);
 
-            StreamHelper::Vec6f r;
-            cv::solve(A, b, r, cv::DECOMP_SVD);
-
-            Affine3f Tinc(Vec3f(r.val), Vec3f(r.val+3));
-            affine = Tinc * affine;
+                  Affine3f Tinc(Vec3f(r.val), Vec3f(r.val+3));
+                  affine = Tinc * affine;
+                }
+              }
+          }
         }
     }
-    return true;
+    return ret;
 }
 

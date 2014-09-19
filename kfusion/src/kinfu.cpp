@@ -18,8 +18,8 @@ kfusion::KinFuParams kfusion::KinFuParams::default_params()
     p.rows = 480;  //pixels
     p.intr = Intr(525.f, 525.f, p.cols/2 - 0.5f, p.rows/2 - 0.5f);
 
-    p.volume_dims = Vec3i::all(512);  //number of voxels
-    p.volume_size = Vec3f::all(3.f);  //meters
+    p.volume_dims = Vec3i::all(256);  //number of voxels
+    p.volume_size = Vec3f::all(0.7f);  //meters
     p.volume_pose = Affine3f().translate(Vec3f(-p.volume_size[0]/2, -p.volume_size[1]/2, 0.5f));
 
     p.bilateral_sigma_depth = 0.04f;  //meter
@@ -27,7 +27,7 @@ kfusion::KinFuParams kfusion::KinFuParams::default_params()
     p.bilateral_kernel_size = 7;     //pixels
 
     p.icp_truncate_depth_dist = 0.f;        //meters, disabled
-    p.icp_dist_thres = 0.1f;                //meters
+    p.icp_dist_thres = 0.09f;                //meters
     p.icp_angle_thres = deg2rad(30.f); //radians
     p.icp_iter_num.assign(iters, iters + levels);
 
@@ -144,53 +144,53 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth& depth, const kfusion
 {
     const KinFuParams& p = params_;
     const int LEVELS = icp_->getUsedLevelsNum();
-
-    cuda::computeDists(depth, dists_, p.intr);
-    cuda::depthBilateralFilter(depth, curr_.depth_pyr[0], p.bilateral_kernel_size, p.bilateral_sigma_spatial, p.bilateral_sigma_depth);
-
-    if (p.icp_truncate_depth_dist > 0)
-        kfusion::cuda::depthTruncation(curr_.depth_pyr[0], p.icp_truncate_depth_dist);
-
-    for (int i = 1; i < LEVELS; ++i)
-        cuda::depthBuildPyramid(curr_.depth_pyr[i-1], curr_.depth_pyr[i], p.bilateral_sigma_depth);
-
-    for (int i = 0; i < LEVELS; ++i)
-#if defined USE_DEPTH
-        cuda::computeNormalsAndMaskDepth(p.intr, curr_.depth_pyr[i], curr_.normals_pyr[i]);
-#else
-        cuda::computePointNormals(p.intr(i), curr_.depth_pyr[i], curr_.points_pyr[i], curr_.normals_pyr[i]);
-#endif
-
-    cuda::waitAllDefaultStream();
-
-    //can't perform more on first frame
-    if (frame_counter_ == 0)
     {
-        volume_->integrate(dists_, poses_.back(), p.intr);
-#if defined USE_DEPTH
-        curr_.depth_pyr.swap(prev_.depth_pyr);
-#else
-        curr_.points_pyr.swap(prev_.points_pyr);
-#endif
-        curr_.normals_pyr.swap(prev_.normals_pyr);
-        return ++frame_counter_, false;
-    }
+      ScopeTime time("pre-icp");
 
+      cuda::computeDists(depth, dists_, p.intr);
+      cuda::depthBilateralFilter(depth, curr_.depth_pyr[0], p.bilateral_kernel_size, p.bilateral_sigma_spatial, p.bilateral_sigma_depth);
+
+      if (p.icp_truncate_depth_dist > 0)
+          kfusion::cuda::depthTruncation(curr_.depth_pyr[0], p.icp_truncate_depth_dist);
+
+      for (int i = 1; i < LEVELS; ++i)
+          cuda::depthBuildPyramid(curr_.depth_pyr[i-1], curr_.depth_pyr[i], p.bilateral_sigma_depth);
+
+      for (int i = 0; i < LEVELS; ++i)
+#if   defined USE_DEPTH
+          cuda::computeNormalsAndMaskDepth(p.intr, curr_.depth_pyr[i], curr_.normals_pyr[i]);
+#else
+          cuda::computePointNormals(p.intr(i), curr_.depth_pyr[i], curr_.points_pyr[i], curr_.normals_pyr[i]);
+#endif
+
+      cuda::waitAllDefaultStream();
+
+      //can't perform more on first frame
+      if (frame_counter_ == 0)
+      {
+          volume_->integrate(dists_, poses_.back(), p.intr);
+#if   defined USE_DEPTH
+          curr_.depth_pyr.swap(prev_.depth_pyr);
+#else
+          curr_.points_pyr.swap(prev_.points_pyr);
+#endif
+          curr_.normals_pyr.swap(prev_.normals_pyr);
+          return ++frame_counter_, false;
+      }
+    }
     ///////////////////////////////////////////////////////////////////////////////////////////
     // ICP
     Affine3f affine; // cuur -> prev
     {
-        //ScopeTime time("icp");
-#if defined USE_DEPTH
-        bool ok = icp_->estimateTransform(affine, p.intr, curr_.depth_pyr, curr_.normals_pyr, prev_.depth_pyr, prev_.normals_pyr);
-#else
+        ScopeTime time("icp");
         bool ok = icp_->estimateTransform(affine, p.intr, curr_.points_pyr, curr_.normals_pyr, prev_.points_pyr, prev_.normals_pyr);
-#endif
         if (!ok)
             return reset(), false;
     }
 
     poses_.push_back(poses_.back() * affine); // curr -> global
+    std::cout << affine.rotation() << endl;
+    std::cout << affine.translation() << endl;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Volume integration

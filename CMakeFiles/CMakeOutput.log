@@ -263,3 +263,53 @@ Parsed CXX implicit link information from above output:
   implicit fwks: []
 
 
+Performing C SOURCE FILE Test OpenMP_FLAG_DETECTED succeded with the following output:
+Change Dir: /home/caiosba/Mestrado/kinfu_remake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec2250059491/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec2250059491.dir/build.make CMakeFiles/cmTryCompileExec2250059491.dir/build
+make[1]: Entrando no diretório `/home/caiosba/Mestrado/kinfu_remake/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/caiosba/Mestrado/kinfu_remake/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec2250059491.dir/src.c.o
+/usr/bin/cc   -DOpenMP_FLAG_DETECTED -fopenmp   -o CMakeFiles/cmTryCompileExec2250059491.dir/src.c.o   -c /home/caiosba/Mestrado/kinfu_remake/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTryCompileExec2250059491
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2250059491.dir/link.txt --verbose=1
+/usr/bin/cc   -DOpenMP_FLAG_DETECTED -fopenmp    CMakeFiles/cmTryCompileExec2250059491.dir/src.c.o  -o cmTryCompileExec2250059491 -rdynamic 
+make[1]: Saindo do diretório `/home/caiosba/Mestrado/kinfu_remake/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+#include <omp.h>
+int main() {
+#ifdef _OPENMP
+  return 0;
+#else
+  breaks_on_purpose
+#endif
+}
+
+Performing C++ SOURCE FILE Test OpenMP_FLAG_DETECTED succeded with the following output:
+Change Dir: /home/caiosba/Mestrado/kinfu_remake/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec4205649892/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec4205649892.dir/build.make CMakeFiles/cmTryCompileExec4205649892.dir/build
+make[1]: Entrando no diretório `/home/caiosba/Mestrado/kinfu_remake/CMakeFiles/CMakeTmp'
+/usr/bin/cmake -E cmake_progress_report /home/caiosba/Mestrado/kinfu_remake/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building CXX object CMakeFiles/cmTryCompileExec4205649892.dir/src.cxx.o
+/usr/bin/c++    -DOpenMP_FLAG_DETECTED -fopenmp   -o CMakeFiles/cmTryCompileExec4205649892.dir/src.cxx.o -c /home/caiosba/Mestrado/kinfu_remake/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTryCompileExec4205649892
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec4205649892.dir/link.txt --verbose=1
+/usr/bin/c++    -DOpenMP_FLAG_DETECTED -fopenmp    CMakeFiles/cmTryCompileExec4205649892.dir/src.cxx.o  -o cmTryCompileExec4205649892 -rdynamic 
+make[1]: Saindo do diretório `/home/caiosba/Mestrado/kinfu_remake/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+#include <omp.h>
+int main() {
+#ifdef _OPENMP
+  return 0;
+#else
+  breaks_on_purpose
+#endif
+}
+

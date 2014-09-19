@@ -411,11 +411,12 @@ namespace kfusion
 
             if (d == 0)
             {
-                const float3 bgr1 = make_float3(4.f/255.f, 2.f/255.f, 2.f/255.f);
-                const float3 bgr2 = make_float3(236.f/255.f, 120.f/255.f, 120.f/255.f);
+                // const float3 bgr1 = make_float3(4.f/255.f, 2.f/255.f, 2.f/255.f);
+                // const float3 bgr2 = make_float3(236.f/255.f, 120.f/255.f, 120.f/255.f);
 
-                float w = static_cast<float>(y) / dst.rows;
-                color = bgr1 * (1 - w) + bgr2 * w;
+                // float w = static_cast<float>(y) / dst.rows;
+                // color = bgr1 * (1 - w) + bgr2 * w;
+                color = make_float3(0, 0, 0);
             }
             else
             {
@@ -465,11 +466,12 @@ namespace kfusion
 
             if (isnan(p.x))
             {
-                const float3 bgr1 = make_float3(4.f/255.f, 2.f/255.f, 2.f/255.f);
-                const float3 bgr2 = make_float3(236.f/255.f, 120.f/255.f, 120.f/255.f);
+                // const float3 bgr1 = make_float3(4.f/255.f, 2.f/255.f, 2.f/255.f);
+                // const float3 bgr2 = make_float3(236.f/255.f, 120.f/255.f, 120.f/255.f);
 
-                float w = static_cast<float>(y) / dst.rows;
-                color = bgr1 * (1 - w) + bgr2 * w;
+                // float w = static_cast<float>(y) / dst.rows;
+                // color = bgr1 * (1 - w) + bgr2 * w;
+                color = make_float3(0, 0, 0);
             }
             else
             {

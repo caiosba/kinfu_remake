@@ -31,17 +31,17 @@ struct KinFuApp
         capture_.setRegistration(true);
 
         cv::viz::WCube cube(cv::Vec3d::all(0), cv::Vec3d(params.volume_size), true, cv::viz::Color::apricot());
-        viz.showWidget("cube", cube, params.volume_pose);
-        viz.showWidget("coor", cv::viz::WCoordinateSystem(0.1));
+        // viz.showWidget("cube", cube, params.volume_pose);
+        // viz.showWidget("coor", cv::viz::WCoordinateSystem(0.1));
         viz.registerKeyboardCallback(KeyboardCallback, this);
     }
 
     void show_depth(const cv::Mat& depth)
     {
         cv::Mat display;
-        //cv::normalize(depth, display, 0, 255, cv::NORM_MINMAX, CV_8U);
+        // cv::normalize(depth, display, 0, 255, cv::NORM_MINMAX, CV_8U);
         depth.convertTo(display, CV_8U, 255.0/4000);
-        cv::imshow("Depth", display);
+        // cv::imshow("Depth", display);
     }
 
     void show_raycasted(KinFu& kinfu)
@@ -62,8 +62,8 @@ struct KinFuApp
         cuda::DeviceArray<Point> cloud = kinfu.tsdf().fetchCloud(cloud_buffer);
         cv::Mat cloud_host(1, (int)cloud.size(), CV_32FC4);
         cloud.download(cloud_host.ptr<Point>());
-        viz.showWidget("cloud", cv::viz::WCloud(cloud_host));
-        //viz.showWidget("cloud", cv::viz::WPaintedCloud(cloud_host));
+        // viz.showWidget("cloud", cv::viz::WCloud(cloud_host));
+        // viz.showWidget("cloud", cv::viz::WPaintedCloud(cloud_host));
     }
 
     bool execute()
@@ -89,7 +89,7 @@ struct KinFuApp
             if (has_image)
                 show_raycasted(kinfu);
 
-            show_depth(depth);
+            // show_depth(depth);
             //cv::imshow("Image", image);
 
             if (!iteractive_mode_)
@@ -134,7 +134,7 @@ int main (int argc, char* argv[])
         return std::cout << std::endl << "Kinfu is not supported for pre-Fermi GPU architectures, and not built for them by default. Exiting..." << std::endl, 1;
 
     OpenNISource capture;
-    capture.open (0);
+    capture.open(1);
     //capture.open("d:/onis/20111013-224932.oni");
     //capture.open("d:/onis/reg20111229-180846.oni");
     //capture.open("d:/onis/white1.oni");
