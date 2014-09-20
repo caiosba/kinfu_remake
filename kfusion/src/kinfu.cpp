@@ -186,7 +186,7 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth& depth, const kfusion
 
     poses_.push_back(poses_.back() * affine); // curr -> global
 
-    // kfusion::KinFu::sendData(affine);
+    kfusion::KinFu::sendData(affine);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Volume integration
@@ -221,8 +221,8 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth& depth, const kfusion
 }
 
 void kfusion::KinFu::sendData(Affine3f affine) {
-  std::cout << affine.rotation() << endl;
-  std::cout << affine.translation() << endl;
+  // std::cout << affine.rotation() << endl;
+  // std::cout << affine.translation() << endl;
 
   int port = 6003;
   int n;
@@ -256,7 +256,7 @@ void kfusion::KinFu::sendData(Affine3f affine) {
     std::cout << "Could not send data to socket" << std::endl;
   }
 	else {
-	  std::cout << "Sending stream" << std::endl;
+	  // std::cout << "Sending stream" << std::endl;
 	}
 
   close(sock);

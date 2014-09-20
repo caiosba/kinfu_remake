@@ -188,7 +188,7 @@ bool kfusion::cuda::ProjectiveICP::estimateTransform(Affine3f& affine, const Int
           helper.vcurr = vcurr[level_index];
           helper.ncurr = ncurr[level_index];
 
-          #pragma omp parallel for
+          // #pragma omp parallel for
           for(int iter = 0; iter < iters_[level_index]; ++iter)
           {
               if (ret) {
