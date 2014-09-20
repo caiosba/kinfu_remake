@@ -5,6 +5,13 @@
 #include <kfusion/cuda/projective_icp.hpp>
 #include <vector>
 #include <string>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace kfusion
 {
@@ -75,6 +82,8 @@ namespace kfusion
         void renderImage(cuda::Image& image, const Affine3f& pose, int flags = 0);
 
         Affine3f getCameraPose (int time = -1) const;
+
+        void sendData(Affine3f affine);
     private:
         void allocate_buffers();
 

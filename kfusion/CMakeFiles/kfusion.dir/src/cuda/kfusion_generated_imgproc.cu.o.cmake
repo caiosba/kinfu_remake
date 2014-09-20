@@ -86,7 +86,7 @@ endif()
 
 # This is the list of host compilation flags.  It C or CXX should already have
 # been chosen by FindCUDA.cmake.
-set(CMAKE_HOST_FLAGS  -fopenmp )
+set(CMAKE_HOST_FLAGS  -fopenmp -Wno-format-security )
 set(CMAKE_HOST_FLAGS_DEBUG -g)
 set(CMAKE_HOST_FLAGS_RELEASE -O3 -DNDEBUG)
 set(CMAKE_HOST_FLAGS_MINSIZEREL -Os -DNDEBUG)

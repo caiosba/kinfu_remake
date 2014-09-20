@@ -265,6 +265,20 @@ vector
 -
 string
 -
+sys/types.h
+-
+sys/socket.h
+-
+netinet/in.h
+-
+arpa/inet.h
+-
+netdb.h
+-
+stdio.h
+-
+stdlib.h
+-
 
 kfusion/include/kfusion/types.hpp
 kfusion/cuda/device_array.hpp

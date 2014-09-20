@@ -144,39 +144,35 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth& depth, const kfusion
 {
     const KinFuParams& p = params_;
     const int LEVELS = icp_->getUsedLevelsNum();
+    cuda::computeDists(depth, dists_, p.intr);
+    cuda::depthBilateralFilter(depth, curr_.depth_pyr[0], p.bilateral_kernel_size, p.bilateral_sigma_spatial, p.bilateral_sigma_depth);
+
+    if (p.icp_truncate_depth_dist > 0)
+        kfusion::cuda::depthTruncation(curr_.depth_pyr[0], p.icp_truncate_depth_dist);
+
+    for (int i = 1; i < LEVELS; ++i)
+        cuda::depthBuildPyramid(curr_.depth_pyr[i-1], curr_.depth_pyr[i], p.bilateral_sigma_depth);
+
+    for (int i = 0; i < LEVELS; ++i)
+#if defined USE_DEPTH
+        cuda::computeNormalsAndMaskDepth(p.intr, curr_.depth_pyr[i], curr_.normals_pyr[i]);
+#else
+        cuda::computePointNormals(p.intr(i), curr_.depth_pyr[i], curr_.points_pyr[i], curr_.normals_pyr[i]);
+#endif
+
+    cuda::waitAllDefaultStream();
+
+    //can't perform more on first frame
+    if (frame_counter_ == 0)
     {
-      ScopeTime time("pre-icp");
-
-      cuda::computeDists(depth, dists_, p.intr);
-      cuda::depthBilateralFilter(depth, curr_.depth_pyr[0], p.bilateral_kernel_size, p.bilateral_sigma_spatial, p.bilateral_sigma_depth);
-
-      if (p.icp_truncate_depth_dist > 0)
-          kfusion::cuda::depthTruncation(curr_.depth_pyr[0], p.icp_truncate_depth_dist);
-
-      for (int i = 1; i < LEVELS; ++i)
-          cuda::depthBuildPyramid(curr_.depth_pyr[i-1], curr_.depth_pyr[i], p.bilateral_sigma_depth);
-
-      for (int i = 0; i < LEVELS; ++i)
-#if   defined USE_DEPTH
-          cuda::computeNormalsAndMaskDepth(p.intr, curr_.depth_pyr[i], curr_.normals_pyr[i]);
+        volume_->integrate(dists_, poses_.back(), p.intr);
+#if defined USE_DEPTH
+        curr_.depth_pyr.swap(prev_.depth_pyr);
 #else
-          cuda::computePointNormals(p.intr(i), curr_.depth_pyr[i], curr_.points_pyr[i], curr_.normals_pyr[i]);
+        curr_.points_pyr.swap(prev_.points_pyr);
 #endif
-
-      cuda::waitAllDefaultStream();
-
-      //can't perform more on first frame
-      if (frame_counter_ == 0)
-      {
-          volume_->integrate(dists_, poses_.back(), p.intr);
-#if   defined USE_DEPTH
-          curr_.depth_pyr.swap(prev_.depth_pyr);
-#else
-          curr_.points_pyr.swap(prev_.points_pyr);
-#endif
-          curr_.normals_pyr.swap(prev_.normals_pyr);
-          return ++frame_counter_, false;
-      }
+        curr_.normals_pyr.swap(prev_.normals_pyr);
+        return ++frame_counter_, false;
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
     // ICP
@@ -189,8 +185,8 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth& depth, const kfusion
     }
 
     poses_.push_back(poses_.back() * affine); // curr -> global
-    std::cout << affine.rotation() << endl;
-    std::cout << affine.translation() << endl;
+
+    // kfusion::KinFu::sendData(affine);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Volume integration
@@ -222,6 +218,48 @@ bool kfusion::KinFu::operator()(const kfusion::cuda::Depth& depth, const kfusion
     }
 
     return ++frame_counter_, true;
+}
+
+void kfusion::KinFu::sendData(Affine3f affine) {
+  std::cout << affine.rotation() << endl;
+  std::cout << affine.translation() << endl;
+
+  int port = 6003;
+  int n;
+  unsigned int length;
+  struct sockaddr_in server;
+  struct hostent * hp;
+  const char * buffer;
+  int sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+  std::ostringstream ss;
+  ss << affine.rotation();
+	ss << "|";
+	ss << affine.translation();
+  std::string s(ss.str());
+	buffer = s.c_str();
+
+  server.sin_family = AF_INET;
+
+  hp = gethostbyname("localhost");
+  if (hp == 0) {
+    std::cout << "Unknown host" << std::endl;
+  }
+
+  bcopy((char *)hp->h_addr, (char *)&server.sin_addr, hp->h_length);
+  server.sin_port = htons(port);
+  length = sizeof(struct sockaddr_in);
+  
+  n = sendto(sock, buffer, strlen(buffer), 0, (const struct sockaddr *)&server,length);
+
+  if (n < 0) {
+    std::cout << "Could not send data to socket" << std::endl;
+  }
+	else {
+	  std::cout << "Sending stream" << std::endl;
+	}
+
+  close(sock);
 }
 
 void kfusion::KinFu::renderImage(cuda::Image& image, int flag)
