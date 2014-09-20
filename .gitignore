@@ -1,0 +1,8 @@
+*.o
+*.cmake
+*.a
+bin/demo
+*.swo
+*.swp
+*.make
+CMakeFiles

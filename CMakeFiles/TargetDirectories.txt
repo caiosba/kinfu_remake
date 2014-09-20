@@ -1,2 +1,0 @@
-/home/caiosba/Mestrado/kinfu_remake/apps/CMakeFiles/demo.dir
-/home/caiosba/Mestrado/kinfu_remake/kfusion/CMakeFiles/kfusion.dir
