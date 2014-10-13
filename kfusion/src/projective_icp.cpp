@@ -213,6 +213,7 @@ bool kfusion::cuda::ProjectiveICP::estimateTransform(Affine3f& affine, const Int
 
                   Affine3f Tinc(Vec3f(r.val), Vec3f(r.val+3));
                   affine = Tinc * affine;
+                  std::cout << r << endl;
                 }
               }
           }
